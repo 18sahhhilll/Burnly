@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0E1420;
+  --foreground: #E8EAF0;
+  --surface: #161D2C;
+  --border: #2A3346;
+  --accent: #C9A15D;
+  --text-muted: #8B92A8;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ensure tabular nums across all numeric outputs */
+.font-mono, .numeric-tabular {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-variant-numeric: tabular-nums;
+}

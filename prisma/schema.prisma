@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Scenario {
+  id        String   @id @default(cuid())
+  title     String
+  userId    String?  // Nullable field reserved for future authentication
+  data      Json     // Stores complete SimulationInput JSON structure
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("scenarios")
+}
