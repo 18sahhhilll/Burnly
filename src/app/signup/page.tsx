@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
-export default function SignUpPage() {
+function SignUpContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -14,6 +15,13 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    const urlError = searchParams.get('error');
+    if (urlError) {
+      setErrorMsg(decodeURIComponent(urlError));
+    }
+  }, [searchParams]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +81,7 @@ export default function SignUpPage() {
         {/* Header Branding */}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold tracking-tight text-[#E8EAF0]">Burnly</h1>
-          <p className="text-xs text-[#8B92A8]">Financial Model & Runway Sandbox</p>
+          <p className="text-xs text-[#8B92A8]">Financial Model &amp; Runway Sandbox</p>
         </div>
 
         <div className="border-t border-[#2A3346] pt-4">
@@ -170,5 +178,17 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0E1420] text-[#E8EAF0] flex items-center justify-center text-xs text-[#8B92A8]">
+        Loading sign up...
+      </div>
+    }>
+      <SignUpContent />
+    </Suspense>
   );
 }

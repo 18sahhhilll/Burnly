@@ -1,22 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const supabase = createClient();
 
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    const urlError = searchParams.get('error');
+
+    if (reason === 'session_expired') {
+      setInfoMsg('Your session has expired. Please sign in again to continue.');
+    } else if (urlError) {
+      setErrorMsg(decodeURIComponent(urlError));
+    }
+  }, [searchParams]);
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setInfoMsg(null);
     setIsLoading(true);
 
     try {
@@ -40,6 +54,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setErrorMsg(null);
+    setInfoMsg(null);
     setIsLoading(true);
 
     try {
@@ -66,13 +81,19 @@ export default function LoginPage() {
         {/* Header Branding */}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold tracking-tight text-[#E8EAF0]">Burnly</h1>
-          <p className="text-xs text-[#8B92A8]">Financial Model & Runway Sandbox</p>
+          <p className="text-xs text-[#8B92A8]">Financial Model &amp; Runway Sandbox</p>
         </div>
 
         <div className="border-t border-[#2A3346] pt-4">
           <h2 className="text-sm font-semibold text-[#E8EAF0] mb-1">Sign in to your account</h2>
           <p className="text-xs text-[#8B92A8]">Enter your credentials to access your financial scenarios</p>
         </div>
+
+        {infoMsg && (
+          <div className="p-2.5 bg-[#C9A15D]/10 border border-[#C9A15D]/40 rounded text-xs text-[#C9A15D]">
+            {infoMsg}
+          </div>
+        )}
 
         {errorMsg && (
           <div className="p-2.5 bg-[#B4694A]/10 border border-[#B4694A]/40 rounded text-xs text-[#B4694A]">
@@ -156,5 +177,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0E1420] text-[#E8EAF0] flex items-center justify-center text-xs text-[#8B92A8]">
+        Loading sign in...
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -14,14 +14,14 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ simulation }) 
   const fmt = (val: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
-  // Status Indicator Dots (No pill chips)
-  let runwayDotColor = 'bg-[#4A7C64]'; // Forest green
+  // Status Indicator Dots
+  let runwayDotColor = 'bg-[#4A7C64]';
   let runwayLabel = 'Healthy buffer';
   if (runwayMonths < 6) {
-    runwayDotColor = 'bg-[#B4694A]'; // Muted rust
+    runwayDotColor = 'bg-[#B4694A]';
     runwayLabel = 'Critical (< 6 mos)';
   } else if (runwayMonths < 12) {
-    runwayDotColor = 'bg-[#C9A15D]'; // Muted amber
+    runwayDotColor = 'bg-[#C9A15D]';
     runwayLabel = 'Tight (< 12 mos)';
   } else if (runwayMonths < 18) {
     runwayDotColor = 'bg-[#C9A15D]';
@@ -36,9 +36,9 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ simulation }) 
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 sm:mb-6">
       {/* 1. Runway Metric */}
-      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-4 text-[#E8EAF0]">
+      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-3.5 sm:p-4 text-[#E8EAF0]">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-[#8B92A8] font-normal">Projected runway</span>
           <div className="flex items-center space-x-1.5">
@@ -58,7 +58,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ simulation }) 
       </div>
 
       {/* 2. Monthly Net Burn */}
-      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-4 text-[#E8EAF0]">
+      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-3.5 sm:p-4 text-[#E8EAF0]">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-[#8B92A8] font-normal">Monthly net burn</span>
           <span className="text-[11px] text-[#8B92A8] font-mono">Month 1</span>
@@ -75,7 +75,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ simulation }) 
       </div>
 
       {/* 3. Break-Even Point */}
-      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-4 text-[#E8EAF0]">
+      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-3.5 sm:p-4 text-[#E8EAF0]">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-[#8B92A8] font-normal">Break-even point</span>
           <div className="flex items-center space-x-1.5">
@@ -100,7 +100,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ simulation }) 
       </div>
 
       {/* 4. Risk Score */}
-      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-4 text-[#E8EAF0]">
+      <div className="bg-[#161D2C] border border-[#2A3346] rounded p-3.5 sm:p-4 text-[#E8EAF0]">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-[#8B92A8] font-normal">Risk assessment</span>
           <div className="flex items-center space-x-1.5">

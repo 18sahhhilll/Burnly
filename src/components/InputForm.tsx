@@ -17,14 +17,30 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
     unit: false,
   });
 
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
   const handleFieldChange = (field: keyof SimulationInput, value: any) => {
+    const numVal = Number(value);
+    const newErrors = { ...validationErrors };
+
+    // Inline field validation for negative numbers
+    if (typeof value === 'number' || !isNaN(numVal)) {
+      if (numVal < 0) {
+        newErrors[field] = 'Must be non-negative';
+      } else {
+        delete newErrors[field];
+      }
+    }
+
+    setValidationErrors(newErrors);
+
     onChange({
       ...input,
-      [field]: value,
+      [field]: typeof value === 'number' ? Math.max(0, value) : value,
     });
   };
 
@@ -43,7 +59,12 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
 
   const handleHireChange = (id: string, field: keyof PlannedHire, value: any) => {
     const updatedHires = input.plannedHires.map((h) =>
-      h.id === id ? { ...h, [field]: value } : h
+      h.id === id
+        ? {
+            ...h,
+            [field]: field === 'monthlySalary' || field === 'startMonth' ? Math.max(0, Number(value)) : value,
+          }
+        : h
     );
     onChange({
       ...input,
@@ -59,7 +80,7 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
   };
 
   return (
-    <div className="bg-[#161D2C] border border-[#2A3346] rounded p-4 text-[#E8EAF0] space-y-4">
+    <div className="bg-[#161D2C] border border-[#2A3346] rounded p-3.5 sm:p-4 text-[#E8EAF0] space-y-3.5">
       {/* Header & Scenario Title */}
       <div className="border-b border-[#2A3346] pb-3">
         <label className="block text-xs text-[#8B92A8] font-normal mb-1">
@@ -69,7 +90,7 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
           type="text"
           value={input.scenarioName}
           onChange={(e) => handleFieldChange('scenarioName', e.target.value)}
-          className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-semibold text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+          className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-3 py-2 text-xs font-semibold text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[38px]"
           placeholder="e.g. Seed Raise — 3 Hire Strategy"
         />
       </div>
@@ -78,13 +99,13 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
       <div className="border border-[#2A3346] rounded overflow-hidden">
         <button
           onClick={() => toggleSection('capital')}
-          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3 py-2 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0]"
+          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3.5 py-2.5 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0] min-h-[42px]"
         >
           <span>1. Capital & initial revenue</span>
           {openSections.capital ? (
-            <ChevronUp className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronUp className="w-4 h-4 text-[#8B92A8]" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronDown className="w-4 h-4 text-[#8B92A8]" />
           )}
         </button>
 
@@ -94,27 +115,33 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
               <label className="block text-[11px] text-[#8B92A8] mb-1">Investment amount (₹)</label>
               <input
                 type="number"
+                min={0}
                 value={input.investmentAmount}
                 onChange={(e) => handleFieldChange('investmentAmount', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
+              {validationErrors.investmentAmount && (
+                <span className="text-[10px] text-[#B4694A]">{validationErrors.investmentAmount}</span>
+              )}
             </div>
             <div>
               <label className="block text-[11px] text-[#8B92A8] mb-1">Existing cash in bank (₹)</label>
               <input
                 type="number"
+                min={0}
                 value={input.existingCash}
                 onChange={(e) => handleFieldChange('existingCash', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
               <label className="block text-[11px] text-[#8B92A8] mb-1">Current monthly revenue (₹)</label>
               <input
                 type="number"
+                min={0}
                 value={input.currentMonthlyRevenue}
                 onChange={(e) => handleFieldChange('currentMonthlyRevenue', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
@@ -122,7 +149,7 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
               <select
                 value={input.businessModel}
                 onChange={(e) => handleFieldChange('businessModel', e.target.value as BusinessModelType)}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               >
                 <option value="SaaS">SaaS (Recurring Subscription)</option>
                 <option value="D2C">D2C E-Commerce</option>
@@ -138,13 +165,13 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
       <div className="border border-[#2A3346] rounded overflow-hidden">
         <button
           onClick={() => toggleSection('expenses')}
-          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3 py-2 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0]"
+          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3.5 py-2.5 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0] min-h-[42px]"
         >
           <span>2. Fixed monthly operating spend</span>
           {openSections.expenses ? (
-            <ChevronUp className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronUp className="w-4 h-4 text-[#8B92A8]" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronDown className="w-4 h-4 text-[#8B92A8]" />
           )}
         </button>
 
@@ -154,36 +181,40 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
               <label className="block text-[11px] text-[#8B92A8] mb-1">Marketing / Ads (₹/mo)</label>
               <input
                 type="number"
+                min={0}
                 value={input.marketingSpend}
                 onChange={(e) => handleFieldChange('marketingSpend', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
               <label className="block text-[11px] text-[#8B92A8] mb-1">Infra & tools (₹/mo)</label>
               <input
                 type="number"
+                min={0}
                 value={input.infraSpend}
                 onChange={(e) => handleFieldChange('infraSpend', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
               <label className="block text-[11px] text-[#8B92A8] mb-1">Ops & rent (₹/mo)</label>
               <input
                 type="number"
+                min={0}
                 value={input.opsSpend}
                 onChange={(e) => handleFieldChange('opsSpend', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
               <label className="block text-[11px] text-[#8B92A8] mb-1">Founder salary (₹/mo total)</label>
               <input
                 type="number"
+                min={0}
                 value={input.founderSalary}
                 onChange={(e) => handleFieldChange('founderSalary', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
           </div>
@@ -194,13 +225,13 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
       <div className="border border-[#2A3346] rounded overflow-hidden">
         <button
           onClick={() => toggleSection('hires')}
-          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3 py-2 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0]"
+          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3.5 py-2.5 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0] min-h-[42px]"
         >
           <span>3. Planned team hires ({input.plannedHires.length})</span>
           {openSections.hires ? (
-            <ChevronUp className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronUp className="w-4 h-4 text-[#8B92A8]" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronDown className="w-4 h-4 text-[#8B92A8]" />
           )}
         </button>
 
@@ -222,16 +253,17 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
                       value={hire.role}
                       onChange={(e) => handleHireChange(hire.id, 'role', e.target.value)}
                       placeholder="Role title"
-                      className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-2 py-1 text-xs text-[#E8EAF0]"
+                      className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-2 py-1 text-xs text-[#E8EAF0] min-h-[32px]"
                     />
                   </div>
                   <div className="col-span-4">
                     <input
                       type="number"
+                      min={0}
                       value={hire.monthlySalary}
                       onChange={(e) => handleHireChange(hire.id, 'monthlySalary', Number(e.target.value))}
                       placeholder="Monthly ₹"
-                      className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-2 py-1 text-xs font-mono text-[#E8EAF0]"
+                      className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-2 py-1 text-xs font-mono text-[#E8EAF0] min-h-[32px]"
                     />
                   </div>
                   <div className="col-span-2">
@@ -243,13 +275,13 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
                       onChange={(e) => handleHireChange(hire.id, 'startMonth', Number(e.target.value))}
                       placeholder="Month #"
                       title="Start Month Number (1-36)"
-                      className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-1.5 py-1 text-xs font-mono text-center text-[#E8EAF0]"
+                      className="w-full bg-[#0E1420] border border-[#2A3346] rounded px-1.5 py-1 text-xs font-mono text-center text-[#E8EAF0] min-h-[32px]"
                     />
                   </div>
                   <div className="col-span-1 flex justify-end">
                     <button
                       onClick={() => handleHireDelete(hire.id)}
-                      className="text-[#8B92A8] hover:text-[#B4694A] p-0.5"
+                      className="text-[#8B92A8] hover:text-[#B4694A] p-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -260,7 +292,7 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
 
             <button
               onClick={handleHireAdd}
-              className="w-full py-1.5 bg-[#161D2C] hover:bg-[#20293d] border border-[#2A3346] text-[#E8EAF0] rounded text-xs font-medium flex items-center justify-center gap-1 transition"
+              className="w-full py-2 bg-[#161D2C] hover:bg-[#20293d] border border-[#2A3346] text-[#E8EAF0] rounded text-xs font-medium flex items-center justify-center gap-1 transition min-h-[38px]"
             >
               <Plus className="w-3.5 h-3.5 text-[#C9A15D]" />
               Add hire
@@ -273,13 +305,13 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
       <div className="border border-[#2A3346] rounded overflow-hidden">
         <button
           onClick={() => toggleSection('unit')}
-          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3 py-2 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0]"
+          className="w-full bg-[#161D2C] hover:bg-[#1a2336] px-3.5 py-2.5 flex items-center justify-between text-left text-xs font-medium text-[#E8EAF0] min-h-[42px]"
         >
           <span>4. Growth rate & unit economics</span>
           {openSections.unit ? (
-            <ChevronUp className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronUp className="w-4 h-4 text-[#8B92A8]" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-[#8B92A8]" />
+            <ChevronDown className="w-4 h-4 text-[#8B92A8]" />
           )}
         </button>
 
@@ -290,9 +322,10 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
               <input
                 type="number"
                 step="0.5"
+                min={0}
                 value={input.monthlyGrowthRate}
                 onChange={(e) => handleFieldChange('monthlyGrowthRate', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
@@ -300,18 +333,21 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
               <input
                 type="number"
                 step="1"
+                min={0}
+                max={100}
                 value={input.grossMargin}
                 onChange={(e) => handleFieldChange('grossMargin', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
               <label className="block text-[11px] text-[#8B92A8] mb-1">CAC (₹ per customer)</label>
               <input
                 type="number"
+                min={0}
                 value={input.cac}
                 onChange={(e) => handleFieldChange('cac', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
             <div>
@@ -319,9 +355,11 @@ export const InputForm: React.FC<InputFormProps> = ({ input, onChange }) => {
               <input
                 type="number"
                 step="0.5"
+                min={0}
+                max={100}
                 value={input.churnRate}
                 onChange={(e) => handleFieldChange('churnRate', Number(e.target.value))}
-                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-2.5 py-1 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D]"
+                className="w-full bg-[#161D2C] border border-[#2A3346] rounded px-3 py-1.5 text-xs font-mono text-[#E8EAF0] focus:outline-none focus:border-[#C9A15D] min-h-[36px]"
               />
             </div>
           </div>

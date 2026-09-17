@@ -53,7 +53,7 @@ export const ScenarioComparison: React.FC<ScenarioComparisonProps> = ({
     <div className="space-y-4">
       {/* Table Comparison Card */}
       <div className="bg-[#161D2C] border border-[#2A3346] rounded p-4 text-[#E8EAF0]">
-        <div className="flex items-center justify-between border-b border-[#2A3346] pb-2.5 mb-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#2A3346] pb-2.5 mb-3 gap-2">
           <div>
             <h3 className="text-sm font-semibold text-[#E8EAF0]">
               Side-by-side scenario matrix
@@ -62,13 +62,16 @@ export const ScenarioComparison: React.FC<ScenarioComparisonProps> = ({
               Comparing financial metrics and burn trajectory across saved models
             </p>
           </div>
-          <span className="text-xs font-mono text-[#8B92A8] bg-[#0E1420] px-2.5 py-0.5 rounded border border-[#2A3346]">
-            {scenarios.length} scenarios
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="sm:hidden text-[11px] text-[#C9A15D]">Scroll right →</span>
+            <span className="text-xs font-mono text-[#8B92A8] bg-[#0E1420] px-2.5 py-0.5 rounded border border-[#2A3346]">
+              {scenarios.length} scenarios
+            </span>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#E8EAF0]">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <table className="w-full text-left text-xs text-[#E8EAF0] min-w-[640px]">
             <thead className="bg-[#0E1420] text-[#8B92A8] font-normal border-b border-[#2A3346]">
               <tr>
                 <th className="py-2.5 px-3">Scenario name</th>
@@ -177,21 +180,29 @@ export const ScenarioComparison: React.FC<ScenarioComparisonProps> = ({
           Overlaying ending cash balances across scenarios over time
         </p>
 
-        <div className="h-[340px] w-full">
+        <div className="h-[300px] sm:h-[340px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={combinedChartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+            <LineChart data={combinedChartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#2A3346" />
-              <XAxis dataKey="monthLabel" stroke="#8B92A8" tick={{ fontSize: 11 }} />
+              <XAxis
+                dataKey="monthLabel"
+                stroke="#8B92A8"
+                tick={{ fontSize: 10 }}
+                interval="preserveStartEnd"
+                minTickGap={20}
+                tickFormatter={(val) => val.replace('Month ', 'M')}
+              />
               <YAxis
                 stroke="#8B92A8"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 10 }}
+                width={45}
                 tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
               />
               <Tooltip
                 contentStyle={{ backgroundColor: '#0E1420', borderColor: '#2A3346', borderRadius: '4px', fontSize: '12px' }}
                 formatter={(val: number) => [fmt(val)]}
               />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
               {simulations.map(({ input }, idx) => (
                 <Line
                   key={input.id}
