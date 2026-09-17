@@ -3,14 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Scenario {
   id        String   @id @default(cuid())
   title     String
-  userId    String?  // Nullable field reserved for future authentication
+  userId    String?  // Stores the authenticated Supabase user UUID
   data      Json     // Stores complete SimulationInput JSON structure
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

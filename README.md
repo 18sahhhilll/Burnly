@@ -4,7 +4,9 @@ Burnly is a financial simulation platform that lets startup founders model inves
 
 ---
 
-## 🛠️ Local Development & Setup
+## 🛠️ Database & Auth Setup (Supabase Hosted)
+
+Burnly uses **Supabase Hosted PostgreSQL** with Prisma Connection Pooling for runtime queries and direct connections for migrations.
 
 ### 1. Environment Configuration
 Copy the example environment file:
@@ -12,58 +14,61 @@ Copy the example environment file:
 cp .env.example .env
 ```
 
-Configure your `.env` with PostgreSQL and Supabase credentials:
-```env
-# Database connection URL for Prisma (local Docker Postgres instance)
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/burnly?schema=public"
+In your [Supabase Project Dashboard](https://app.supabase.com) under *Project Settings -> Database -> Connection string*, copy both connection strings into your `.env`:
 
-# Supabase Auth Configuration (From your Supabase Dashboard -> Settings -> API)
+```env
+# 1. Transaction / Session Pooled Connection (Used by Prisma Client at runtime, Port 6543)
+DATABASE_URL="postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# 2. Direct Connection (Used exclusively for Prisma schema migrations, Port 5432)
+DIRECT_URL="postgresql://postgres.[project-ref]:[password]@db.[project-ref].supabase.co:5432/postgres"
+
+# Supabase Auth Configuration (Project Settings -> API)
 NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 ```
 
-### 2. Start PostgreSQL via Docker Compose
-Spin up the local PostgreSQL 17 container (`burnly-db`):
+### 2. Run Database Migrations Against Hosted Supabase
+Deploy the Prisma schema to your hosted Supabase database:
 ```bash
-docker compose up -d
+npx prisma migrate deploy
 ```
+Or run `npx prisma db push` to push schema changes directly.
 
-### 3. Run Prisma Database Migrations
-Apply schema migrations to set up the `scenarios` table:
+---
+
+## 🐳 Local Offline Development (Optional Docker Setup)
+
+For developers working offline without internet access:
+1. Spin up the local PostgreSQL container:
+   ```bash
+   docker compose up -d
+   ```
+2. Update `.env` to point `DATABASE_URL` and `DIRECT_URL` to local Postgres:
+   ```env
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/burnly?schema=public"
+   DIRECT_URL="postgresql://postgres:postgres@localhost:5432/burnly?schema=public"
+   ```
+3. Run local migration:
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+
+---
+
+## 🔒 Authentication Configuration
+
+1. In Supabase Dashboard under *Authentication -> URL Configuration*, set Site URL to `http://localhost:3000` and add `http://localhost:3000/auth/callback` under Additional Redirect URLs.
+2. Enable **Email/Password** and **Google OAuth** under *Authentication -> Providers*.
+
+---
+
+## 🚀 Running the App
 ```bash
-npx prisma migrate dev --name init
-```
-
-### 4. Configure Supabase Authentication Providers
-In your [Supabase Dashboard](https://app.supabase.com):
-1. **Email/Password**: Enabled by default under *Authentication -> Providers*.
-2. **Google OAuth**: Under *Authentication -> Providers -> Google*, enable the provider and paste your Client ID and Client Secret from Google Cloud Console. Set the Authorized Redirect URI to `https://<your-supabase-ref>.supabase.co/auth/v1/callback`.
-3. **Site URL & Redirects**: Under *Authentication -> URL Configuration*, set Site URL to `http://localhost:3000` and add `http://localhost:3000/auth/callback` under Additional Redirect URLs.
-
-### 5. Run Development Server
-```bash
+# Start development server
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 🔒 Authentication & Data Isolation Architecture
-
-- **Middleware Route Protection**: Unauthenticated requests to `/` redirect to `/login`. Unauthenticated requests to `/api/scenarios/*` receive HTTP `401 Unauthorized`.
-- **Database User Isolation**: Scenarios created by logged-in users store their Supabase User UUID in the `userId` column in Postgres. `GET /api/scenarios` filters strictly by `where: { userId: user.id }`.
-
----
-
-## 🔌 API Route Reference
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/scenarios` | Yes | List saved scenarios belonging to the logged-in user |
-| `POST` | `/api/scenarios` | Yes | Create a scenario tied to the logged-in user ID |
-| `GET` | `/api/scenarios/:id` | Yes | Fetch a single scenario owned by the user |
-| `PUT` | `/api/scenarios/:id` | Yes | Update a scenario owned by the user |
-| `DELETE` | `/api/scenarios/:id` | Yes | Delete a scenario owned by the user |
 
 ---
 
